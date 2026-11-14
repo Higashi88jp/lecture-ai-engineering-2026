@@ -32,34 +32,27 @@ uv run python -m app.ask "LoRAとは何ですか？"
 
 詳しい手順は [lectures/01/problem.md](lectures/01/problem.md) を見てください。
 
-## 第5回：検索DBの作成
+## 第5回：講義資料を検索する
 
 演習・宿題の手順は [lectures/05/problem.md](lectures/05/problem.md)、結果の記入先は [lectures/05/answer.md](lectures/05/answer.md) です。
 
-環境変数 `GEMINI_API_KEY` を設定し、リポジトリの直下で実行します。
+第1〜3回の本講義214ページを埋め込んだ検索DB `data/rag_data/index.sqlite3` を同梱しています。`GEMINI_API_KEY` を設定し、リポジトリ直下で依存関係をそろえたら、検索や回答を試せます。検索時の質問の埋め込みと回答生成にはAPIを使います。
 
 ```bash
 uv sync --frozen
-uv run python -m scripts.build_rag_index
-```
-
-`data/rag_data/lectures.json` のうち、第1〜3回の本講義214ページを1ページずつ埋め込み、`.cache/rag/index.sqlite3` に保存します。初回の作成には埋め込みAPIを使います。DB本体はGitに含めません。
-
-作成後は、検索だけ、または検索結果を使った回答を試せます。
-
-```bash
 uv run python -m app.retrieval "LoRA QLoRA 違い"
 uv run python -m app.agent --trace "LoRAとQLoRAの違いは？"
 uv run python -m app.agent --graph --trace "LoRAとQLoRAの違いは？"
 ```
 
-DBは一度作成すれば繰り返し使えます。既存DBがある状態で作成コマンドを実行すると、上書きせず停止します。教材や埋め込みの設定を変えて作り直すときは、明示的に再作成します。
+教材本文や埋め込み設定を変更した場合は、実験用のDBを作ります。`AIE_RAG_DB` を設定したターミナルでは、作成と検索の両方がそのパスを使います。
 
 ```bash
-uv run python -m scripts.build_rag_index --rebuild
+export AIE_RAG_DB="$PWD/.cache/rag/custom.sqlite3"
+uv run python -m scripts.build_rag_index
 ```
 
-再作成に失敗した場合は、元のDBを保持します。`AIE_RAG_DB` で作成・検索に使うDBの場所を変更できます。Treeモード（`--tree`）と全文投入（`--full-context`）には検索DBは不要です。
+同じ実験用DBを再作成する場合は、作成コマンドに `--rebuild` を付けます。同梱DBに戻すときは `unset AIE_RAG_DB` を実行します。Treeモード（`--tree`）と全文投入（`--full-context`）には検索DBは不要です。
 
 ## 構成
 
@@ -79,7 +72,7 @@ data/
   glossary.json  講座の用語集
   lectures/      各回の要点
   eval/          第4回：評価セット（lec04_cases.jsonl）と採点の基準（rubric.md）
-  rag_data/      第5回：講義資料本文（lectures.json）、目次（tree.json）、ページ・用語の関係（graph.json）
+  rag_data/      第5回：講義資料本文（lectures.json）、目次（tree.json）、ページ・用語の関係（graph.json）、検索DB（index.sqlite3）
 tools/
   annotate.py    第4回：評価セットにラベルを付ける画面（Streamlit。uv run --with で一時的に足して動かす）
 .streamlit/      Streamlit の設定（Codespaces のポート転送で開けるようにする）

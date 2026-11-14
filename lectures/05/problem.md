@@ -15,6 +15,7 @@
 | [data/rag_data/lectures.json](../../data/rag_data/lectures.json) | 講義・章・ページごとのタイトルと本文。1ページを1チャンクとして使う |
 | [data/rag_data/tree.json](../../data/rag_data/tree.json) | 資料・章・ページの階層 |
 | [data/rag_data/graph.json](../../data/rag_data/graph.json) | ページ・用語などのノードと、それらを結ぶ関係 |
+| [data/rag_data/index.sqlite3](../../data/rag_data/index.sqlite3) | 第1〜3回の本講義214ページを収めた検索DB |
 | [scripts/build_rag_index.py](../../scripts/build_rag_index.py) | 資料を埋め込み、検索用SQLite DBを作成する |
 | [app/retrieval.py](../../app/retrieval.py) | ベクトル検索・Tree探索・Graph探索・全文投入の処理 |
 | [app/tools.py](../../app/tools.py) | モデルが使うツールの説明と入出力 |
@@ -42,19 +43,9 @@ uv sync --frozen
 
 APIキーは第1回と同じ環境変数`GEMINI_API_KEY`を使います。Codespacesのsecretを後から登録した場合は、Codespacesを再起動してください。設定方法は[README](../../README.md)を参照してください。
 
-### 2. 検索DBを作る（初回のみ）
+### 2. 同梱の検索DBを確認する
 
-以下のコマンドは、リポジトリ直下で実行します。
-
-```bash
-uv run python -m scripts.build_rag_index
-```
-
-第1〜3回の本講義214ページを埋め込みAPIに送り、`.cache/rag/index.sqlite3`を作成します。作成にはAPIの利用量が発生するため、授業前に済ませておいてかまいません。一度作ったDBは繰り返し使えます。
-
-- 既存のDBがある場合は上書きせず停止します。そのまま次の演習へ進めます
-- 教材や埋め込みの設定を変更して作り直すときだけ、`--rebuild`を付けます。再作成に失敗した場合は元のDBを保持します
-- Treeと全文投入には検索DBは不要です
+ベクトル検索とGraphは、同梱の`data/rag_data/index.sqlite3`をそのまま使います。第5回の更新を取り込んだら、演習に進んでください。質問の埋め込みと回答生成には`GEMINI_API_KEY`を使います。Treeと全文投入には検索DBは不要です。
 
 ## 演習
 
@@ -148,7 +139,7 @@ git commit -m "第5回 演習・宿題"
 git push -u origin lec05
 ```
 
-APIキーや検索DBをcommitする必要はありません。最後に、左下の「Codespaces」から **Stop Current Codespace** を選んで停止します。
+APIキーや実験用の検索DBはcommitの対象から外してください。最後に、左下の「Codespaces」から **Stop Current Codespace** を選んで停止します。
 
 ## 宿題（どれか1つで完了）
 
@@ -181,6 +172,8 @@ APIキーや検索DBをcommitする必要はありません。最後に、左下
 
 自分の用途に合わせた別の取得処理の改良でもかまいません。本文や埋め込みの設定を変えず、取得する範囲だけを変える場合は、索引の再作成は不要です。
 
+教材本文や埋め込み設定を変える場合は、[READMEの手順](../../README.md#第5回講義資料を検索する)に沿って、`AIE_RAG_DB`で実験用のDBを指定してから索引を作ります。
+
 ### 発展の進め方
 
 1. 解けるようにしたい質問を決めます。章をまたぐ説明や関連用語の比較など、答えを支えるページを先に確認します
@@ -196,9 +189,8 @@ AIツールは使ってかまいません。自分で実行して確かめたこ
 | 症状 | 確認すること |
 |---|---|
 | `GEMINI_API_KEY`が見つからない | Codespacesのsecretを登録したか。後から登録した場合はCodespacesを再起動したか |
-| 「検索DBがありません」 | 事前準備の作成コマンドを完了したか。DBがない場合もTreeと全文投入は試せる |
-| 「検索DBは既にあります」 | 作成済みのDBを使って次へ進む。再作成するときだけ`--rebuild`を付ける |
-| APIのレート制限に達した | 表示メッセージに従って待ってから再実行する。索引の初回作成が失敗した場合は作成コマンドからやり直す |
+| 「検索DBがありません」 | 第5回の更新を取り込み、`data/rag_data/index.sqlite3`があるか確認する。`AIE_RAG_DB`を設定した場合は指定先を確認する |
+| APIのレート制限に達した | 表示メッセージに従って待ってから再実行する |
 | 質問が空だと言われる | 別のターミナルを開いた場合は`AIE_QUESTION`をもう一度設定する |
 | 検索結果が質問に答えていない | `app.retrieval`で検索だけを試し、検索語・対象資料・返す件数を確認する |
 | 全文投入で入力上限のエラーになる | エラーと実行条件を記録し、他の方式を試す。未実行の欄はその旨を書く |
